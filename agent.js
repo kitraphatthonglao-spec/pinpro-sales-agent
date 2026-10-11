@@ -7,7 +7,19 @@ const PACKAGES = [
 ];
 
 
+
+
+
+
+
+
 function baht(n) { return n.toLocaleString('th-TH') + ' บาท'; }
+
+
+
+
+
+
 
 
 function analyzeMessage(message = '') {
@@ -26,6 +38,12 @@ function analyzeMessage(message = '') {
 }
 
 
+
+
+
+
+
+
 function buildReply(message) {
   const result = analyzeMessage(message);
   const text = String(message).toLowerCase();
@@ -37,3 +55,8 @@ function buildReply(message) {
   if (result.matched.some(p => p.id === 'maps-basic')) return { status: 'needs_owner', analysis: result, reply: 'รับข้อมูลแล้วครับ ขอบคุณมากครับ\n\nเดี๋ยวผมขอตรวจสอบหมุด Google Maps ให้ก่อนนะครับ รอสักครู่ แล้วผมจะแจ้งผลตรวจสอบพร้อมรายละเอียดบริการและราคาให้ครับ' };
   const lines = result.matched.map(p => '• ' + p.service + ' ' + baht(p.price) + ' ใช้เวลาประมาณ ' + p.days);
   return { status: 'ready_to_quote', analysis: result, reply: 'จากที่แจ้งมา แนะนำบริการดังนี้ครับ\n' + lines.join('\n') + '\n\nหากตรงกับที่ต้องการ แจ้งได้เลยครับ ผมจะส่งรายละเอียดเพื่อเริ่มงานให้ทันที' };
+}
+
+
+module.exports = { PACKAGES, analyzeMessage, buildReply };
+
