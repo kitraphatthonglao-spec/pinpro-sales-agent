@@ -23,6 +23,9 @@ function durationReply(context){
 }
 buildReply=function(message='',options={}){
   const t=String(message).toLowerCase();
+  if(/google\s*ads|กูเกิล\s*แอด|ยิงแอด/.test(t)&&/(website|เว็บไซต์).*seo|seo.*(website|เว็บไซต์)/.test(t)){
+    return{status:'needs_owner',analysis:{...analyzeMessage(message),serviceContext:'local-seo'},reply:'ไม่รวมทั้ง Google Ads และ Website SEO ครับ เพราะเป็นงานคนละส่วนกับ Local SEO บน Google Maps\n\n• Google Ads คือโฆษณาแบบชำระเงิน\n• Website SEO คือการปรับเว็บไซต์ให้ติดผลค้นหาแบบเว็บไซต์\n• Local SEO Google Maps คือการปรับหมุดและ Google Business Profile ให้มีโอกาสแสดงเมื่อคนค้นหาธุรกิจหรือบริการในพื้นที่ ซึ่งเป็นบริการที่ทางร้านรับทำครับ\n\nหากเป้าหมายคือให้ลูกค้าค้นหาร้านเจอจาก Google Maps รบกวนส่งลิงก์หมุด ชื่อธุรกิจ คีย์เวิร์ด และพื้นที่ให้บริการมาให้ตรวจสอบเบื้องต้นได้ครับ'};
+  }
   if(/(website|เว็บไซต์).*seo|seo.*(website|เว็บไซต์)/.test(t)){
     return{status:'needs_owner',analysis:{...analyzeMessage(message),serviceContext:'website-seo'},reply:'Website SEO คือการปรับเว็บไซต์ให้มีโอกาสแสดงในผลค้นหาแบบเว็บไซต์ครับ ซึ่งเป็นคนละส่วนกับ Local SEO บน Google Maps\n\nทางร้านรับทำ Local SEO สำหรับ Google Maps โดยตรง แต่ยังไม่ได้รับทำ Website SEO ครับ หากเป้าหมายคือให้ลูกค้าค้นหาร้านเจอจากหมุด Google Maps รบกวนส่งลิงก์หมุด ชื่อธุรกิจ คีย์เวิร์ด และพื้นที่ให้บริการมาให้ตรวจสอบเบื้องต้นได้ครับ'};
   }
