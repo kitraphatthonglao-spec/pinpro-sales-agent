@@ -1,11 +1,13 @@
 const http = require('http');
 const crypto = require('crypto');
-const { buildReply } = require('./agent');
+const { buildReply, detectServiceContext } = require('./agent');
 
 const PORT = Number(process.env.PORT || 3000);
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'change-this-token';
 const APP_SECRET = process.env.META_APP_SECRET || '';
 const PAGE_ACCESS_TOKEN = process.env.META_PAGE_ACCESS_TOKEN || '';
+const conversationContexts = new Map();
+const CONTEXT_TTL_MS = 24 * 60 * 60 * 1000;
 
 function json(res, code, body) {
   res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -43,7 +45,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' }); return res.end(url.searchParams.get('hub.challenge') || '');
   }
   if (req.method === 'POST' && url.pathname === '/analyze') {
-    try { const body = JSON.parse(await readBody(req)); return json(res, 200, buildReply(body.message)); }
+    try { const body = JSON.parse(await readBody(req)); return json(res, 200, buildReply(body.message, { serviceContext: body.serviceContext })); }
     catch { return json(res, 400, { error: 'invalid JSON' }); }
   }
   if (req.method === 'POST' && url.pathname === '/webhook') {
@@ -55,7 +57,14 @@ const server = http.createServer(async (req, res) => {
       const results = [];
       for (const entry of body.entry || []) for (const event of entry.messaging || []) {
         if (event.message?.text && event.sender?.id) {
-          const result = buildReply(event.message.text);
+          const senderId = event.sender.id;
+          const previous = conversationContexts.get(senderId);
+          const previousContext = previous && Date.now() - previous.updatedAt < CONTEXT_TTL_MS ? previous.serviceContext : null;
+          const result = buildReply(event.message.text, { serviceContext: previousContext });
+          const detectedContext = detectServiceContext(event.message.text);
+          if (detectedContext) conversationContexts.set(senderId, { serviceContext: detectedContext, updatedAt: Date.now() });
+          else if (previousContext && previous) conversationContexts.set(senderId, previous);
+          else conversationContexts.delete(senderId);
           results.push(await sendMessengerMessage(event.sender.id, result.reply));
         }
       }
